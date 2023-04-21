@@ -1129,13 +1129,12 @@ public static void method2() {
 * 如果 CAS 替换成功，对象头中存储了锁记录地址和状态 00（轻量级锁） ，表示由该线程给对象加锁
   ![](JUC.assets/JUC-轻量级锁原理2.png)
 
-* 如果 CAS 失败，有两种情况：
-
+  * 如果 CAS 失败，有两种情 况：
   * 如果是其它线程已经持有了该 Object 的轻量级锁，这时表明有竞争，进入锁膨胀过程
   * 如果是线程自己执行了 synchronized 锁重入，就添加一条 Lock Record 作为重入的计数
-
+  
   ![](JUC.assets/JUC-轻量级锁原理3.png)
-
+  
 * 当退出 synchronized 代码块（解锁时）
 
   * 如果有取值为 null 的锁记录，表示有重入，这时重置锁记录，表示重入计数减 1
