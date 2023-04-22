@@ -121,23 +121,29 @@ WHERE
 #### 查询学过"张三"老师所教的所有课的同学的学号、姓名（重要）
 
 ```sql
+#创建张三所代课程的课程号视图 mc
+DROP VIEW
+IF
+	EXISTS mc;
+CREATE VIEW mc AS ( SELECT c.c_id FROM course c JOIN teacher t ON c.t_id = t.t_id WHERE t.t_name = '张三' );
+
+#查询选过mc中所有课程的学生学号、姓名
 SELECT
-	student.s_id,
-	student.s_name 
+	a.s_id,
+	st.s_name 
 FROM
-	score
-	JOIN student ON score.s_id = student.s_id 
+	( 
+		SELECT s_id, count(*) cnt FROM score WHERE c_id IN ( SELECT c_id FROM mc ) GROUP BY s_id 
+	) a
+	JOIN student st ON a.s_id = st.s_id 
 WHERE
-	score.c_id IN 
+	a.cnt = 
 	(
 		SELECT
-			a.c_id 
+			count(*) 
 		FROM
-			course a
-			JOIN teacher b ON a.t_id = b.t_id 
-		WHERE
-			b.t_name = "张三"
-    )
+			mc
+	)
 ```
 
 ### 七、
@@ -227,5 +233,122 @@ GROUP BY
 	st.s_id 
 HAVING
 	count( DISTINCT sc.c_id ) < ( SELECT count( c_id ) FROM course )
+```
+
+### 十一、
+
+#### 查询至少有一门课与学号为“01”的学生所学课程相同的学生的学号和姓名（重点）
+
+```sql
+SELECT
+	DISTINCT st.s_id,
+	st.s_name	 
+FROM
+	score sc
+	JOIN student st ON sc.s_id = st.s_id 
+WHERE
+	sc.s_id != "01" 
+	AND sc.c_id IN 
+	(
+		SELECT
+			c_id 
+		FROM
+			score 
+		WHERE
+			s_id = "01"
+    )
+```
+
+### 十二、
+
+#### 查询和“01”号同学所学课程完全相同的其他同学的学号(重点，和六相似)
+
+```sql
+DROP VIEW IF EXISTS v;
+CREATE VIEW v AS ( SELECT c_id FROM score WHERE s_id = "01" );
+
+SELECT
+	st.s_id,
+	st.s_name 
+FROM
+	( 
+		SELECT s_id, count( DISTINCT c_id ) cnt FROM score WHERE c_id IN ( SELECT c_id FROM v ) GROUP BY s_id 
+	) temp
+	JOIN student st ON st.s_id = temp.s_id 
+WHERE
+	temp.cnt = ( SELECT count(*) FROM v ) 
+	AND st.s_id != "01"
+```
+
+完全相同 / 所有 ，先分组，进行数量统计，然后对数量进行等值判断
+
+### 十三、
+
+#### 查询两门及其以上不及格课程的同学的学号，姓名及其平均成绩（重点）
+
+```sql
+SELECT
+	sc.s_id,
+	st.s_name,
+	avg( s_score ) 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id 
+WHERE
+	st.s_id IN ( SELECT s_id FROM score WHERE s_score < 60 GROUP BY s_id HAVING count( DISTINCT c_id )>= 2 ) 
+GROUP BY
+	s_id
+```
+
+### 十四、
+
+#### 检索"01"课程分数小于60，按分数降序排列的学生信息
+
+```sql
+SELECT
+	st.*,
+	sc.s_score 
+FROM
+	score sc
+	JOIN student st ON sc.s_id = st.s_id 
+WHERE
+	sc.c_id = "01" 
+	AND sc.s_score < 60 
+ORDER BY
+	sc.s_score DESC
+```
+
+### 十五、
+
+#### 按平均成绩从高到低显示所有学生的所有课程的成绩以及平均成绩(重点)
+
+```sql
+#1
+SELECT
+	a.s_id,
+	a.c_id,
+	a.s_score,
+	b.avg_score 
+FROM
+	score a
+	JOIN ( SELECT s_id, avg( s_score ) avg_score FROM score GROUP BY s_id ) b ON a.s_id = b.s_id 
+ORDER BY
+	b.avg_score DESC
+
+#2
+SELECT
+	s_id "学号",
+	max( CASE WHEN c_id = "01" THEN s_score ELSE NULL END ) "语文",
+	max( CASE WHEN c_id = "02" THEN s_score ELSE NULL END ) "数学",
+	max( CASE WHEN c_id = "03" THEN s_score ELSE NULL END ) "英语",
+	max( CASE WHEN c_id = "04" THEN s_score ELSE NULL END ) "化学",
+	max( CASE WHEN c_id = "05" THEN s_score ELSE NULL END ) "生物",
+	avg( s_score ) "平均成绩" 
+FROM
+	score 
+GROUP BY
+	s_id 
+ORDER BY
+	avg( s_score ) DESC
 ```
 
