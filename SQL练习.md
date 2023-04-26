@@ -354,3 +354,50 @@ ORDER BY
 
 ### 十六、
 
+#### 按各科成绩进行排序，并显示排名(重点row_number)
+
+```sql
+#窗口函数MySQL8支持
+select s_id,c_id,s_score,row_number() over(order by s_score desc) from score
+```
+
+![image-20230426213140933](SQL练习.assets/image-20230426213140933.png)
+
+### 十七、
+
+#### 查询学生的总成绩并进行排名
+
+```sql
+SELECT
+	st.s_id,
+	st.s_name,
+	sum( sc.s_score ) 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id 
+GROUP BY
+	s_id 
+ORDER BY
+	sum( sc.s_score ) DESC
+```
+
+### 十八、
+
+#### 查询不同老师所教不同课程平均分  从高到低显示
+
+```sql
+SELECT
+	c.c_id,
+	t.t_name,
+	c.c_name,
+	avg( sc.s_score ) 
+FROM
+	score sc
+	JOIN course c ON sc.c_id = c.c_id
+	JOIN teacher t ON t.t_id = c.t_id 
+GROUP BY
+	c.c_id,c.c_name
+ORDER BY
+	avg( s_score ) DESC
+```
+
