@@ -401,3 +401,39 @@ ORDER BY
 	avg( s_score ) DESC
 ```
 
+### 十九、
+
+#### 查询所有课程的成绩第2名到第3名的学生信息及该课程成绩（重要）
+
+```sql
+SELECT
+	* 
+FROM
+	(
+	SELECT
+		st.s_id,
+		st.s_name,
+		c_id,
+		s_score,
+		ROW_NUMBER() over ( PARTITION BY c_id ORDER BY s_score DESC ) m 
+	FROM
+		score sc jpin student st ON sc.s_id = st.s_id 
+	) t 
+WHERE
+	m IN ( 2, 3 )
+```
+
+### 二十、
+
+#### 使用分段[100-85],[85-70],[70-60],[<60]来统计各科成绩，分别统计各分数段人数：课程ID和课程名称(重点）
+
+```sql
+#统计总分，若要统计人数，then 1 else 0
+select c.c_id,c.c_name,
+sum(case when sc.s_score<=100 and sc.s_score>85 then sc.s_score else 0 end) as "(85,100]",
+sum(case when sc.s_score<=85 and sc.s_score>70 then sc.s_score else 0 end) as "(70,85]",
+sum(case when sc.s_score<=70 and sc.s_score>60 then sc.s_score else 0 end) as "[60,70]",
+sum(case when sc.s_score<60 then sc.s_score else 0 end) as "[0,60)"
+from score sc join course c on sc.c_id = c.c_id group by c.c_id 
+```
+
