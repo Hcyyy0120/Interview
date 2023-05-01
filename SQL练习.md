@@ -437,3 +437,52 @@ sum(case when sc.s_score<60 then sc.s_score else 0 end) as "[0,60)"
 from score sc join course c on sc.c_id = c.c_id group by c.c_id 
 ```
 
+### 二十一、
+
+#### 查询学生平均成绩及其名次（重点）
+
+```sql
+SELECT
+	st.s_name,
+	avg( sc.s_score ),
+	ROW_NUMBER() over ( ORDER BY avg( sc.s_score ) DESC ) 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id 
+GROUP BY
+	sc.s_id
+```
+
+### 二十二、
+
+#### 查询每门课程被选修的学生数
+
+```sql
+select sc.c_id,count(sc.s_id) from score sc GROUP BY sc.c_id
+```
+
+### 二十三、
+
+#### 查询出只有两门课程的全部学生的学号和姓名
+
+```sql
+SELECT
+	st.s_name,
+	st.s_id 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id 
+GROUP BY
+	sc.s_id 
+HAVING
+	count( DISTINCT sc.c_id ) = 2
+```
+
+### 二十四、
+
+#### 查询男生、女生人数
+
+```sql
+select s_sex,count(s_id) from student group by s_sex
+```
+
