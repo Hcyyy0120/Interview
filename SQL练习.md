@@ -486,3 +486,94 @@ HAVING
 select s_sex,count(s_id) from student group by s_sex
 ```
 
+### 二十五、
+
+#### 查询名字中含有"风"字的学生信息
+
+```sql
+select * from student where s_name like '%风%'
+```
+
+### 二十六、
+
+#### 查询1990年出生的学生名单（重点）
+
+```sql
+#YEAR函数
+select * from student where YEAR(s_birth) = '1990'
+```
+
+### 二十七、
+
+#### 查询平均成绩大于等于85的所有学生的学号、姓名和平均成绩
+
+```sql
+SELECT
+	sc.s_id,
+	st.s_name,
+	avg( sc.s_score ) 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id 
+GROUP BY
+	sc.s_id 
+HAVING
+	avg( sc.s_score ) >= 85
+```
+
+### 二十八、
+
+#### 查询每门课程的平均成绩，结果按平均成绩升序排序，平均成绩相同时，按课程号降序排列
+
+```sql
+SELECT
+	c_id,
+	avg( s_score ) 
+FROM
+	score 
+GROUP BY
+	c_id 
+ORDER BY
+	avg( s_score ) ASC,
+	c_id DESC
+```
+
+### 二十九、
+
+#### 查询课程名称为"数学"，且分数低于60的学生姓名和分数
+
+```sql
+SELECT
+st.s_name,
+sc.s_score
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id 
+WHERE
+	sc.c_id = ( SELECT c.c_id FROM course c WHERE c.c_name = "数学" ) 
+	AND sc.s_score < 60
+```
+
+### 三十、
+
+#### 查询所有学生的课程及分数情况（重点）
+
+```sql
+#用max是因为使用了Group by,必须使用聚合函数（其他聚合函数也可）
+SELECT
+	st.s_id,
+	st.s_name,
+	max( CASE WHEN c.c_name = "语文" THEN sc.s_score ELSE NULL END ) "语文",
+	max( CASE WHEN c.c_name = "数学" THEN sc.s_score ELSE NULL END ) "数学",
+	max( CASE WHEN c.c_name = "英语" THEN sc.s_score ELSE NULL END ) "英语",
+	max( CASE WHEN c.c_name = "化学" THEN sc.s_score ELSE NULL END ) "化学",
+	max( CASE WHEN c.c_name = "生物" THEN sc.s_score ELSE NULL END ) "生物" 
+FROM
+	score sc
+	RIGHT JOIN student st ON st.s_id = sc.s_id
+	LEFT JOIN course c ON sc.c_id = c.c_id 
+GROUP BY
+	st.s_id,
+	st.s_name
+```
+
