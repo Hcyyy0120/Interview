@@ -123,8 +123,7 @@ WHERE
 ```sql
 #创建张三所代课程的课程号视图 mc
 DROP VIEW
-IF
-	EXISTS mc;
+IF EXISTS mc;
 CREATE VIEW mc AS ( SELECT c.c_id FROM course c JOIN teacher t ON c.t_id = t.t_id WHERE t.t_name = '张三' );
 
 #查询选过mc中所有课程的学生学号、姓名
@@ -575,5 +574,113 @@ FROM
 GROUP BY
 	st.s_id,
 	st.s_name
+```
+
+### 三十一、
+
+#### 查询课程成绩在70分以上的姓名、课程名称和分数
+
+```sql
+SELECT
+	st.s_name,
+	c.c_name,
+	sc.s_score 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id
+	JOIN course c ON c.c_id = sc.c_id 
+WHERE
+	sc.s_score > 70
+```
+
+### 三十二、
+
+#### 查询不及格的课程并按课程号从大到小排列
+
+```sql
+SELECT
+	st.s_id,
+	st.s_name,
+	c.c_name,
+	sc.s_score,
+	c.c_id 
+FROM
+	course c
+	JOIN score sc ON c.c_id = sc.c_id
+	JOIN student st ON st.s_id = sc.s_id 
+WHERE
+	sc.s_score < 60 
+ORDER BY
+	sc.c_id desc
+```
+
+### 三十三、
+
+#### 查询课程编号为03且课程成绩在80分以上的学生的学号和姓名
+
+```sql
+SELECT
+	st.s_id,
+	st.s_name 
+FROM
+	score sc
+	JOIN student st ON sc.s_id = st.s_id 
+WHERE
+	sc.c_id = "03" 
+	AND sc.s_score > 80
+```
+
+### 三十四、
+
+#### 求每门课程的学生人数
+
+```sql
+select c_id ,count(distinct s_id) from score group by c_id
+```
+
+### 三十五、
+
+#### 查询选修“张三”老师所授课程的学生中成绩最高的学生姓名及其成绩（重要）
+
+```sql
+# order by + limit，没有考虑有多个相同的最高分
+SELECT
+	st.s_name,
+	sc.s_score 
+FROM
+	score sc
+	JOIN student st ON sc.s_id = st.s_id
+	JOIN course c ON c.c_id = sc.c_id 
+WHERE
+	c.t_id IN ( SELECT t.t_id FROM teacher t WHERE t.t_name = "张三" ) 
+ORDER BY
+	sc.s_score DESC 
+	LIMIT 1
+#较完整的解法（可能复杂化）
+SELECT
+	st.s_name,
+	sc.c_id,
+	sc.s_score 
+FROM
+	student st
+	JOIN score sc ON st.s_id = sc.s_id
+	JOIN temp_view ON sc.c_id = temp_view.c_id 
+WHERE
+	sc.s_score = temp_view.maxScore;
+	
+DROP VIEW IF EXISTS temp_view;
+CREATE VIEW temp_view AS (
+	SELECT
+		sc.c_id,
+		max( sc.s_score ) maxScore 
+	FROM
+		score sc
+		JOIN student st ON sc.s_id = st.s_id
+		JOIN course c ON c.c_id = sc.c_id 
+	WHERE
+		c.t_id IN ( SELECT t.t_id FROM teacher t WHERE t.t_name = "张三" ) 
+	GROUP BY
+	sc.c_id 
+	);
 ```
 
