@@ -684,3 +684,94 @@ CREATE VIEW temp_view AS (
 	);
 ```
 
+### 三十六、
+
+#### 查询一个学生中不同课程成绩相同的学生编号、课程编号、成绩 （重点）
+
+```sql
+#注意distinct
+SELECT
+	distinct a.s_id,
+	a.c_id,
+	a.s_score 
+FROM
+	score a
+	JOIN score b ON a.s_id = b.s_id 
+WHERE
+	a.s_score = b.s_score 
+	AND a.c_id != b.c_id
+```
+
+### 三十七、
+
+#### 统计每门课程的学生选修人数
+
+（超过5人的课程才统计）。要求输出课程号和选修人数，查询结果按人数降序排列，若人数相同，按课程号升序排列
+
+```sql
+SELECT
+	sc.c_id,
+	count( sc.s_id ) count 
+FROM
+	score sc 
+GROUP BY
+	sc.c_id 
+HAVING
+	count( sc.s_id ) > 5 
+ORDER BY
+	count( sc.s_id ) DESC,
+	sc.c_id ASC
+```
+
+### 三十八、
+
+#### 检索至少选修两门课程的学生学号
+
+```sql
+SELECT
+	sc.s_id,
+	count(sc.c_id)
+FROM
+	score sc 
+GROUP BY
+	sc.s_id 
+HAVING
+	count( sc.c_id ) >= 2
+```
+
+### 三十九、
+
+#### 查询选修了全部课程的学生信息（重点）
+
+```sql
+SELECT
+	s_id,
+	count( distinct c_id ) #重修
+FROM
+	score sc 
+GROUP BY
+	sc.s_id 
+HAVING
+	count( c_id ) = 
+	(
+		SELECT
+			count( c_id ) 
+		FROM
+		course 
+	)
+```
+
+### 四十、
+
+#### 查询各学生的年龄（精确到月份）
+
+```sql
+#不严谨
+SELECT
+	s_id,
+	s_birth,
+	FLOOR( DATEDIFF( NOW(), s_birth )/ 365 ) "年龄" 
+FROM
+	student
+```
+
